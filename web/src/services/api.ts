@@ -28,14 +28,6 @@ api.interceptors.response.use(
   }
 );
 
-export const registerUser = (data: {
-  name: string;
-  email: string;
-  dob: string;
-  birthTime: string;
-  gender: 'M' | 'F';
-}) => api.post('/users/register', data);
-export const loginUser = (data: { email: string; dob: string }) => api.post('/users/login', data);
 export const logoutUser = () => api.post('/users/logout');
 export const getProfile = () => api.get('/users/profile');
 export const getLatestDraw = () => api.get('/draws/latest');

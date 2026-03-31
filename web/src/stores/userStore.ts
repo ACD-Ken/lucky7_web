@@ -57,13 +57,32 @@ export const useUserStore = create<UserStore>((set) => ({
         return;
       }
     } catch {}
-    set({ isLoading: false });
+    // Single-user personal deployment — auto-load profile directly
+    const profile: User = {
+      id: 'b6d40129-19a6-448f-80a1-685a51c57a16',
+      name: 'Ken Wong',
+      email: 'ken@alsocando.com',
+      dob: '1970/02/06',
+      birthTime: '',
+      gender: 'M',
+      baziProfileJson: {
+        lifePath: 8,
+        dayMaster: 'Ding',
+        supportElem: 'Wood',
+        lunarProfile: {
+          lunarDay: 21,
+          lunarMonth: 12,
+          heavenlyStem: 'Geng',
+          zodiacAnimal: 'Dog',
+          earthlyBranch: 'Xu',
+        },
+      },
+    };
+    localStorage.setItem('user', JSON.stringify(profile));
+    set({ user: profile, baziProfile: profile.baziProfileJson, isLoading: false });
   },
 
   logout: () => {
-    // Tell the backend to clear the httpOnly cookie, then wipe local state.
-    // Fire-and-forget — clear locally even if the request fails.
-    import('../services/api').then(({ logoutUser }) => logoutUser().catch(() => {}));
     localStorage.removeItem('user');
     set({ user: null, baziProfile: null });
   },
