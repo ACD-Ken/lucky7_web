@@ -1,0 +1,99 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL")
+}
+
+model User {
+  id              String          @id @default(uuid())
+  name            String
+  email           String          @unique
+  dob             String          // YYYY/MM/DD
+  birthTime       String          // HH:MM (24h format)
+  gender          String          // M or F
+  baziProfileJson Json?
+  fcmToken        String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  predictions     Prediction[]
+  chatMessages    ChatMessage[]
+  strategyStats   StrategyStats[]
+
+  @@map("users")
+}
+
+model Draw {
+  id             String       @id @default(uuid())
+  drawNo         String       @unique
+  drawDate       DateTime
+  winningNumbers Int[]
+  additionalNumber Int
+  fetchedAt      DateTime     @default(now())
+
+  predictions    Prediction[]
+
+  @@map("draws")
+}
+
+model Prediction {
+  id        String   @id @default(uuid())
+  userId    String
+  drawId    String
+  strategy  String   // bazi | frequency | gap | numerology | lunar | hybrid
+  numbers   Int[]
+  confidence Float   @default(0)
+  createdAt DateTime @default(now())
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  draw    Draw     @relation(fields: [drawId], references: [id], onDelete: Cascade)
+  matches Match[]
+
+  @@unique([userId, drawId, strategy])
+  @@map("predictions")
+}
+
+model Match {
+  id           String     @id @default(uuid())
+  predictionId String
+  matchCount   Int        @default(0)
+  hasAdditional Boolean   @default(false)
+  scoredAt     DateTime   @default(now())
+
+  prediction   Prediction @relation(fields: [predictionId], references: [id], onDelete: Cascade)
+
+  @@unique([predictionId])
+  @@map("matches")
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  userId    String
+  role      String   // user | assistant
+  content   String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("chat_messages")
+}
+
+model StrategyStats {
+  id         String   @id @default(uuid())
+  userId     String
+  strategy   String
+  avgMatch   Float    @default(0)
+  maxMatch   Int      @default(0)
+  totalDraws Int      @default(0)
+  updatedAt  DateTime @updatedAt
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, strategy])
+  @@map("strategy_stats")
+}
